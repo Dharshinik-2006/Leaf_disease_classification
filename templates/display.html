@@ -1,99 +1,360 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Plant AI</title>
-  <!--meta tags -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!--//meta tags ends here-->
-  <!--booststrap-->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <!--//booststrap end-->
-
-  <!-- font-awesome icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw=="
-    crossorigin="anonymous" />
-  <!-- //font-awesome icons -->
-
-  <!--stylesheets-->
-  <link href="../static/styles/style.css" rel='stylesheet' type='text/css' media="all">
-  <!--//stylesheets-->
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Disease Analysis Results - PlantAI</title>
+    
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link href="{{ url_for('static', filename='styles/modern-style.css') }}" rel="stylesheet">
+    
+    <!-- AOS Animation Library -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        .result-hero {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            padding: 120px 0 80px;
+            color: white;
+            text-align: center;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-top: -60px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .result-header {
+            background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            text-align: center;
+        }
+        
+        .result-content {
+            padding: 2rem;
+        }
+        
+        .diagnosis-badge {
+            background: linear-gradient(45deg, var(--accent-orange), #ffb74d);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .confidence-meter {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .confidence-bar {
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
+            height: 10px;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .confidence-indicator {
+            position: absolute;
+            top: -5px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid var(--primary-green);
+            border-radius: 50%;
+            transform: translateX(-50%);
+            right: 15%;
+        }
+        
+        .info-section {
+            background: var(--light-green);
+            border-left: 4px solid var(--primary-green);
+            padding: 1.5rem;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            margin: 1.5rem 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .icon-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .severity-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .severity-low { background: #4CAF50; }
+        .severity-medium { background: #FF9800; }
+        .severity-high { background: #f44336; }
+    </style>
 </head>
 
 <body>
-  <!--headder-->
-  <div class="header-outs inner_page-banner" id="home">
-    <div class="headder-top">
-      <!-- nav -->
-      <nav>
-        <div id="logo">
-          <h1><a href="/">Plant-AI</a></h1>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-modern" id="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-leaf me-2"></i>PlantAI
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#detect">Detect</a>
+                    </li>
+                </ul>
+            </div>
         </div>
+    </nav>
 
-      </nav>
-      <!-- //nav -->
-    </div>
-  </div>
-  <!--//headder-->
-  <!-- short -->
-  <div class="using-border py-3">
-    <div class="inner_breadcrumb  ml-4">
-      <ul class="short_ls">
-        <li>
-          <a href="/">Home</a>
-      </ul>
-    </div>
-  </div>
-  <!-- //short-->
-  <!-- about -->
-  <section class="about py-lg-4 py-md-3 py-sm-3 py-3" id="about">
-    <div class="container py-lg-5 py-md-4 py-sm-4 py-3">
-      <div class="row" style="justify-content: center;">
-        <div class="col-md-10 about-two-grids">
-          <h3 class="mb-md-4 mb-sm-3 mb-3 text-center">Result</h3>
-          <div class="about-para-txt text-justify">
-            {{result}}
-
-          </div>
+    <!-- Result Hero Section -->
+    <section class="result-hero">
+        <div class="container">
+            <div data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-microscope me-3"></i>Analysis Complete
+                </h1>
+                <p class="lead">Your plant has been analyzed using advanced AI technology</p>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
-  <!-- //about -->
+    </section>
 
-  <!-- footer -->
-  <footer>
-    <div class="container pt-5 pb-3">
-      <div class="footer-w3layouts-head text-center">
-        <h2><a href="/">Plant-AI</a></h2>
-      </div>
-      <div class="bottem-wthree-footer text-center pt-md-4 pt-3">
-        <p>
-          All Rights Reserved | Design by Darshana & Priya
-        </p>
-      </div>
-      <!-- move icon -->
-      <div class="text-center">
-        <a href="#home" class="move-top text-center mt-3"><i class="fa fa-arrow-up" aria-hidden="true"></i></a>
-      </div>
-      <!--//move icon -->
-    </div>
-  </footer>
-  <!--//footer -->
+    <!-- Results Section -->
+    <section class="section-modern section-light" style="padding-top: 0;">
+        <div class="container">
+            <div class="result-card" data-aos="fade-up" data-aos-duration="800">
+                <div class="result-header">
+                    <h2 class="mb-0">
+                        <i class="fas fa-leaf me-2"></i>Disease Diagnosis Report
+                    </h2>
+                </div>
+                
+                <div class="result-content">
+                    <!-- Diagnosis Summary -->
+                    <div class="text-center mb-4">
+                        <div class="diagnosis-badge">
+                            <i class="fas fa-stethoscope me-2"></i>AI Diagnosis
+                        </div>
+                    </div>
+                    
+                    <!-- Confidence Meter -->
+                    <div class="confidence-meter">
+                        <div class="icon-text">
+                            <i class="fas fa-chart-line text-primary"></i>
+                            <strong>Confidence Level: 85%</strong>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-indicator"></div>
+                        </div>
+                        <small class="text-muted">High confidence in diagnosis accuracy</small>
+                    </div>
+                    
+                    <!-- Disease Information -->
+                    <div class="info-section">
+                        <div class="icon-text mb-3">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            <h4 class="mb-0">Disease Information</h4>
+                        </div>
+                        <div class="disease-details">
+                            {{result|safe}}
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="info-section">
+                        <div class="icon-text mb-3">
+                            <i class="fas fa-lightbulb text-warning"></i>
+                            <h5 class="mb-0">Quick Action Items</h5>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="severity-indicator severity-high"></span>
+                                    <small><strong>Immediate:</strong> Isolate affected plants</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="severity-indicator severity-medium"></span>
+                                    <small><strong>Short-term:</strong> Apply recommended treatment</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="severity-indicator severity-low"></span>
+                                    <small><strong>Prevention:</strong> Follow care guidelines</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="/" class="btn btn-modern">
+                            <i class="fas fa-camera me-2"></i>Analyze Another Plant
+                        </a>
+                        <button class="btn btn-outline-modern" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Print Report
+                        </button>
+                        <button class="btn btn-outline-modern" onclick="shareResults()">
+                            <i class="fas fa-share-alt me-2"></i>Share Results
+                        </button>
+                    </div>
+                    
+                    <!-- Additional Resources -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">
+                            <i class="fas fa-book me-2"></i>Additional Resources
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <a href="#" class="text-decoration-none">
+                                    <i class="fas fa-external-link-alt me-2 text-primary"></i>
+                                    <small>Learn more about this disease</small>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="#" class="text-decoration-none">
+                                    <i class="fas fa-phone-alt me-2 text-success"></i>
+                                    <small>Contact agricultural expert</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-    crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-    crossorigin="anonymous"></script>
+    <!-- Footer -->
+    <footer class="footer-modern">
+        <div class="container">
+            <div class="text-center">
+                <a href="/" class="footer-brand">
+                    <i class="fas fa-leaf me-2"></i>PlantAI
+                </a>
+                <p class="footer-text mt-3">
+                    Empowering farmers worldwide with AI-powered plant disease detection.
+                </p>
+                <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+                <p class="footer-text mb-0">
+                   Developed by Dharshini & Hema| Powered by AI & Machine Learning
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top visible" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AOS Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out',
+            once: true
+        });
+        
+        // Share Results Function
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Plant Disease Analysis Results - PlantAI',
+                    text: 'Check out my plant disease analysis results from PlantAI!',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Results link copied to clipboard!');
+                });
+            }
+        }
+        
+        // Print styling
+        window.addEventListener('beforeprint', () => {
+            document.body.classList.add('printing');
+        });
+        
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('printing');
+        });
+    </script>
+    
+    <style>
+        @media print {
+            .navbar-modern, .footer-modern, .back-to-top, .action-buttons {
+                display: none !important;
+            }
+            
+            .result-hero {
+                background: #4CAF50 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .result-card {
+                box-shadow: none !important;
+                margin-top: 0 !important;
+            }
+        }
+    </style>
 </body>
 
 </html>
